@@ -12,22 +12,33 @@ const testiSaa = new URLSearchParams(location.search).get("saa");
 
 // ---------- Datan haku ja XML:n parsiminen ----------
 
-// Hakee kaupungin säätiedot XML-muodossa, parsii ne ja näyttää ne sivulla.
+// Hakee kaupungin sään nimellä (pudotusvalikko ja hakukenttä).
+function haeSaa(kaupunki) {
+    haeJaNayta(`q=${encodeURIComponent(kaupunki)}`, `kaupunkia "${kaupunki}" ei löytynyt`);
+}
+
+// Hakee sään koordinaateilla (oma sijainti).
+function haeSaaKoordinaateilla(lat, lon) {
+    haeJaNayta(`lat=${lat}&lon=${lon}`, "sijainnille ei löytynyt säätietoja");
+}
+
+// Hakee säätiedot XML-muodossa, parsii ne ja näyttää ne sivulla.
+// hakuehto on joko "q=kaupunki" tai "lat=..&lon=..".
 // async mahdollistaa await-sanan käytön funktion sisällä.
-async function haeSaa(kaupunki) {
+async function haeJaNayta(hakuehto, eiLoytynytViesti) {
     tulos.classList.add("ladataan");
 
     try {
         // mode=xml pyytää datan XML-muodossa, units=metric celsiusasteina,
         // lang=fi suomenkielisen säätilan kuvauksen.
         const vastaus = await fetch(
-            `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(kaupunki)}` +
+            `https://api.openweathermap.org/data/2.5/weather?${hakuehto}` +
             `&units=metric&mode=xml&lang=fi&appid=${apiKey}`
         );
 
-        // 404 = kaupunkia ei löytynyt. Muut virhekoodit käsitellään yleisesti.
+        // 404 = kohdetta ei löytynyt. Muut virhekoodit käsitellään yleisesti.
         if (vastaus.status === 404) {
-            throw new Error(`kaupunkia "${kaupunki}" ei löytynyt`);
+            throw new Error(eiLoytynytViesti);
         }
         if (!vastaus.ok) {
             throw new Error("HTTP " + vastaus.status);
@@ -60,14 +71,19 @@ async function haeSaa(kaupunki) {
         piirraNakyma(testiSaa || saaTyyppi(saa.koodi, saa.yo));
 
     } catch (virhe) {
-        tulos.innerHTML = "";
-        const viesti = document.createElement("p");
-        viesti.className = "virhe";
-        viesti.textContent = "Säätietojen haku epäonnistui: " + virhe.message;
-        tulos.appendChild(viesti);
+        naytaVirhe(virhe.message);
     } finally {
         tulos.classList.remove("ladataan");
     }
+}
+
+// Näyttää virheilmoituksen diviin. textContent estää, ettei käyttäjän syöte tulkita HTML:ksi.
+function naytaVirhe(syy) {
+    tulos.innerHTML = "";
+    const viesti = document.createElement("p");
+    viesti.className = "virhe";
+    viesti.textContent = "Säätietojen haku epäonnistui: " + syy;
+    tulos.appendChild(viesti);
 }
 
 // Tulostaa parsitut säätiedot diviin.
@@ -204,6 +220,29 @@ document.getElementById("hakulomake").addEventListener("submit", function (tapah
     if (hakusana !== "") {
         haeSaa(hakusana);
     }
+});
+
+// Oma sijainti: selaimen Geolocation API kysyy käyttäjältä luvan ja antaa koordinaatit.
+document.getElementById("sijainti").addEventListener("click", function () {
+    if (!("geolocation" in navigator)) {
+        naytaVirhe("selain ei tue sijaintia");
+        return;
+    }
+    tulos.classList.add("ladataan");
+    navigator.geolocation.getCurrentPosition(
+        // Onnistui: haetaan sää leveys- ja pituusasteella.
+        function (sijainti) {
+            haeSaaKoordinaateilla(sijainti.coords.latitude, sijainti.coords.longitude);
+        },
+        // Epäonnistui: käyttäjä kielsi luvan tai sijaintia ei saatu.
+        function (virhe) {
+            tulos.classList.remove("ladataan");
+            naytaVirhe(virhe.code === virhe.PERMISSION_DENIED
+                ? "sijainnin käyttö estettiin selaimessa"
+                : "sijaintia ei saatu selville");
+        },
+        { timeout: 10000 }
+    );
 });
 
 // Kun sivu avataan, näytetään heti valikon ensimmäisen kaupungin sää.

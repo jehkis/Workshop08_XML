@@ -414,3 +414,27 @@ footer a {
         height: 80px;
     }
 }
+
+/* ---------- Sijaintipainike ---------- */
+
+.sijainti {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px 16px;
+    font: inherit;
+    font-size: 0.95rem;
+    color: #fff;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.1);
+    transition: background 0.2s;
+}
+
+.sijainti:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
