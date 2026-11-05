@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sää – Workshop 8</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+    <script src="js/app.js" defer></script>
+</head>
+
+<body data-saa="aurinko">
+    <!-- Animoitu sääkuva taustalla. JavaScript täyttää tämän säätilan mukaan. -->
+    <div id="nakyma" aria-hidden="true"></div>
+
+    <main class="kortti">
+        <!-- Hakukenttä: mikä tahansa kaupunki. Lomake käynnistyy myös Enterillä. -->
+        <form id="hakulomake" class="haku">
+            <input id="citysearch" type="search" placeholder="Hae kaupunkia, esim. Tampere" autocomplete="off">
+            <button id="search" type="submit">Hae</button>
+        </form>
+
+        <!-- Pudotusvalikko: onchange hakee valitun kaupungin sään. -->
+        <label class="pikavalinta">
+            Tai valitse:
+            <select id="city" onchange="haeSaa(this.value)">
+                <option value="Helsinki">Helsinki</option>
+                <option value="Stockholm">Tukholma</option>
+                <option value="Rome">Rooma</option>
+                <option value="New York">New York</option>
+                <option value="London">Lontoo</option>
+                <option value="Tokyo">Tokio</option>
+            </select>
+        </label>
+
+        <!-- Parsitut säätiedot näytetään tässä divissä. -->
+        <div id="weatherdata" aria-live="polite">Ladataan…</div>
+
+        <!-- Raaka XML -vastaus tarkastelua varten (harjoituksen 1. vaihe). -->
+        <details class="raaka">
+            <summary>Näytä raaka-XML</summary>
+            <pre id="raakaxml"></pre>
+        </details>
+    </main>
+
+    <footer>
+        Data: <a href="https://openweathermap.org/">OpenWeatherMap</a> ·
+        <a href="workshop08.html">Tehtävänanto</a>
+    </footer>
+</body>
+
+</html>
